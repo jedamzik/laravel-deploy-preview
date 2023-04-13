@@ -10,6 +10,15 @@ export async function until(condition: () => boolean, attempt: () => void, pause
   }
 }
 
+export function mergeVariablesWithEnvString(variables: Record<string, unknown>, env: string): string {
+  return Object.entries(variables).reduce((env, [key, value]) => {
+    if (new RegExp(`${key}=`, 'g').test(env)) {
+      return env.replace(new RegExp(`${key}=.*?\n`), `${key}=${value}\n`);
+    }
+    return `${env}${key}=${value}\n`;
+  }, env);
+}
+
 // function serverWithFewestSites(servers: Server[], sites: Site[]): Server {
 //   const serverSites = sites.reduce((carry: { [_: string]: number }, site: Site) => {
 //     carry[site.server_id] ??= 0;

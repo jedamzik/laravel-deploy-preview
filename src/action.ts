@@ -1,5 +1,5 @@
 import { Forge, Server } from './forge.js';
-import { until } from './helpers.js';
+import * as core from '@actions/core';
 
 type CreateConfig = {
   name: string;
@@ -61,7 +61,10 @@ export async function createPreview({
     info('Repository installed!');
 
     info('Updating .env file');
-    await site.setEnvironmentVariable('DB_DATABASE', database);
+    const envFile = core.getInput('env-file', { required: false });
+    await site.mergeEnvironmentFile(envFile, {
+      DB_DATABASE: database,
+    });
     info('Updated .env file!');
 
     info('Setting up scheduler');

@@ -106,6 +106,22 @@ Example:
     after-deploy: npm ci && npm run build
 ```
 
+#### `env-file`
+
+The `env-file` input paramater allows you to define the path of an env file to be merged with the project's environment.
+
+Example:
+
+```yaml
+- uses: tighten/laravel-deploy-preview@v1
+  with:
+    forge-token: ${{ secrets.FORGE_TOKEN }}
+    servers: |
+      qa-1.acme.dev 60041
+    after-deploy: npm ci && npm run build
+    env-file: $HOME/.env
+```
+
 ## Development
 
 This action is loosely based on GitHub's [hello-world-javascript-action](https://github.com/actions/hello-world-javascript-action) and [typescript-action](https://github.com/actions/typescript-action) templates. It's written in TypeScript and compiled with [`ncc`](https://github.com/vercel/ncc) into a single JavaScript file.

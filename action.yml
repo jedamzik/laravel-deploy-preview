@@ -15,8 +15,9 @@ inputs:
     # 'post-deploy'? 'command'?
     description: Shell script to append and run after the default Forge deploy script. E.g. `npm ci && npm run build`.
     required: false
-  # env variables
-  #
+  env-file:
+    description: env file to be merged with the project's environment.
+    required: false
 runs:
   using: node16
   main: dist/index.js

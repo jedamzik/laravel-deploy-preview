@@ -1,5 +1,8 @@
+import * as core from '@actions/core';
 import axios, { AxiosInstance } from 'axios';
-import { until } from './helpers.js';
+import { parse } from 'dotenv';
+import { mergeVariablesWithEnvString, until } from './helpers.js';
+import { promises as fs } from 'fs';
 
 type ServerPayload = {
   id: number;
@@ -254,6 +257,32 @@ export class Site {
       this.id,
       env.replace(new RegExp(`${name}=.*?\n`), `${name}=${value}\n`)
     );
+  }
+
+  async mergeEnvironmentFile(path: string, additionalVariables?: Record<string, unknown>): Promise<void> {
+    const env = (await Forge.getEnvironmentFile(this.server_id, this.id)) ?? '';
+    core.debug('EXISTING ENV: ' + env);
+    try {
+      const variables = parse(await fs.readFile(path, 'utf8'));
+      core.debug('VARIABLES TO MERGE: ' + variables);
+      const mergedEnv = mergeVariablesWithEnvString(variables, env);
+
+      if (additionalVariables) {
+        const mergedEnvWithAdditionalVariables = mergeVariablesWithEnvString(additionalVariables, mergedEnv);
+        await Forge.updateEnvironmentFile(this.server_id, this.id, mergedEnvWithAdditionalVariables);
+      } else {
+        await Forge.updateEnvironmentFile(this.server_id, this.id, mergedEnv);
+      }
+    } catch (error) {
+      if (additionalVariables) {
+        const envWithAdditionalVariables = mergeVariablesWithEnvString(additionalVariables, env);
+        await Forge.updateEnvironmentFile(this.server_id, this.id, envWithAdditionalVariables);
+      }
+
+      core.error(error);
+
+      await Forge.updateEnvironmentFile(this.server_id, this.id, env);
+    }
   }
 
   async installScheduler(): Promise<void> {
