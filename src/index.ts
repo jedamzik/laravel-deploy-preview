@@ -28,7 +28,7 @@ const afterDeploy = core.getInput('after-deploy', { required: false });
 
 const pr = github.context.payload as PullRequestEvent;
 
-if (pr.action === 'opened') {
+if (pr.action === 'opened' || pr.action === "reopened") {
   // TODO seems like there's a bug in these type definitions, narrowing it to PullRequestOpenedEvent causes an error
   const pr = github.context.payload as PullRequestEvent;
   const preview = await createPreview({
