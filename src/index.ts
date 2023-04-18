@@ -46,6 +46,8 @@ if (pr.action === 'opened') {
     debug: core.debug,
   });
 
+  core.setOutput('PREVIEW_URL', preview.url);
+
   const octokit = github.getOctokit(core.getInput('github-token', { required: true }));
   octokit.rest.issues.createComment({
     owner: pr.repository.owner.login,
