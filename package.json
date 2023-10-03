@@ -1,5 +1,5 @@
 {
-  "name": "tighten/laravel-deploy-preview",
+  "name": "laravel-deploy-preview",
   "version": "1.0.0",
   "license": "MIT",
   "description": "GitHub action to deploy PR preview sites for Laravel apps.",
