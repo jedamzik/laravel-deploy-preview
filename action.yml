@@ -20,6 +20,9 @@ inputs:
   basic-auth:
     description: 'Basic auth credentials to protect the preview site. Format: `username:password`.'
     required: false
+  webhook-path:
+    description: 'Base path to exclude from basic auth (e.g. `/webhook`). Requires `basic-auth` to be set.'
+    required: false
 runs:
   using: node16
   main: dist/index.js

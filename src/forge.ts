@@ -150,6 +150,14 @@ export class Forge {
     });
   }
 
+  static async getNginxConfig(server: number, site: number): Promise<string> {
+    return (await this.get(`servers/${server}/sites/${site}/nginx`)).data;
+  }
+
+  static async updateNginxConfig(server: number, site: number, content: string): Promise<void> {
+    await this.put(`servers/${server}/sites/${site}/nginx`, { content });
+  }
+
   static async deploy(server: number, site: number): Promise<SitePayload> {
     return (await this.post(`servers/${server}/sites/${site}/deployment/deploy`)).data.site;
   }
@@ -303,8 +311,18 @@ export class Site {
     );
   }
 
-  async installBasicAuth(username: string, password: string): Promise<void> {
+  async installBasicAuth(username: string, password: string, webhookPath?: string): Promise<void> {
     await Forge.createSecurityRule(this.server_id, this.id, username, password);
+
+    if (webhookPath) {
+      const nginx = await Forge.getNginxConfig(this.server_id, this.id);
+      const locationBlock = `\n    location ^~ ${webhookPath} {\n        auth_basic off;\n        try_files $uri $uri/ /index.php?$query_string;\n    }\n`;
+      const updated = nginx.replace(
+        /(\n\s*location\s+\/\s*\{)/,
+        `${locationBlock}$1`,
+      );
+      await Forge.updateNginxConfig(this.server_id, this.id, updated);
+    }
   }
 
   async enableQuickDeploy(): Promise<void> {

@@ -7,7 +7,7 @@ type CreateConfig = {
   servers: Array<{ id: number; domain: string }>;
   afterDeploy?: string;
   environment?: Record<string, string>;
-  basicAuth?: { username: string; password: string };
+  basicAuth?: { username: string; password: string; webhookPath?: string };
   info?: Function;
   debug?: Function;
   local?: boolean;
@@ -77,7 +77,7 @@ export async function createPreview({
 
     if (basicAuth) {
       info('Setting up basic auth');
-      await site.installBasicAuth(basicAuth.username, basicAuth.password);
+      await site.installBasicAuth(basicAuth.username, basicAuth.password, basicAuth.webhookPath);
       info('Basic auth enabled!');
     }
 

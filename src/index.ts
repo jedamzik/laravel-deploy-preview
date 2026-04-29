@@ -27,6 +27,7 @@ Forge.setToken(core.getInput('forge-token', { required: true }));
 const afterDeploy = core.getInput('after-deploy', { required: false });
 
 const basicAuthInput = core.getInput('basic-auth', { required: false });
+const webhookPath = core.getInput('webhook-path', { required: false });
 const basicAuth = basicAuthInput
   ? (() => {
       const [username, ...rest] = basicAuthInput.split(':');
@@ -34,7 +35,7 @@ const basicAuth = basicAuthInput
       if (!username || !password) {
         throw new Error('`basic-auth` must be in the format `username:password`.');
       }
-      return { username, password };
+      return { username, password, webhookPath: webhookPath || undefined };
     })()
   : undefined;
 

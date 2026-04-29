@@ -11894,7 +11894,7 @@ async function createPreview({ name, repository, servers, afterDeploy = '', envi
         info('Scheduled job command set up!');
         if (basicAuth) {
             info('Setting up basic auth');
-            await site.installBasicAuth(basicAuth.username, basicAuth.password);
+            await site.installBasicAuth(basicAuth.username, basicAuth.password, basicAuth.webhookPath);
             info('Basic auth enabled!');
         }
         if (afterDeploy) {
@@ -16150,6 +16150,12 @@ class Forge {
             credentials: [{ username, password }],
         });
     }
+    static async getNginxConfig(server, site) {
+        return (await this.get(`servers/${server}/sites/${site}/nginx`)).data;
+    }
+    static async updateNginxConfig(server, site, content) {
+        await this.put(`servers/${server}/sites/${site}/nginx`, { content });
+    }
     static async deploy(server, site) {
         return (await this.post(`servers/${server}/sites/${site}/deployment/deploy`)).data.site;
     }
@@ -16258,8 +16264,14 @@ class Site {
         let certificate = await Forge.getCertificate(this.server_id, this.id, this.certificate_id);
         await until(() => certificate.active, async () => (certificate = await Forge.getCertificate(this.server_id, this.id, this.certificate_id)));
     }
-    async installBasicAuth(username, password) {
+    async installBasicAuth(username, password, webhookPath) {
         await Forge.createSecurityRule(this.server_id, this.id, username, password);
+        if (webhookPath) {
+            const nginx = await Forge.getNginxConfig(this.server_id, this.id);
+            const locationBlock = `\n    location ^~ ${webhookPath} {\n        auth_basic off;\n        try_files $uri $uri/ /index.php?$query_string;\n    }\n`;
+            const updated = nginx.replace(/(\n\s*location\s+\/\s*\{)/, `${locationBlock}$1`);
+            await Forge.updateNginxConfig(this.server_id, this.id, updated);
+        }
     }
     async enableQuickDeploy() {
         await Forge.enableQuickDeploy(this.server_id, this.id);
@@ -16323,6 +16335,7 @@ const servers = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getMultilineInput('se
 _forge_js__WEBPACK_IMPORTED_MODULE_2__/* .Forge.setToken */ .OM.setToken(_actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('forge-token', { required: true }));
 const afterDeploy = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('after-deploy', { required: false });
 const basicAuthInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('basic-auth', { required: false });
+const webhookPath = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('webhook-path', { required: false });
 const basicAuth = basicAuthInput
     ? (() => {
         const [username, ...rest] = basicAuthInput.split(':');
@@ -16330,7 +16343,7 @@ const basicAuth = basicAuthInput
         if (!username || !password) {
             throw new Error('`basic-auth` must be in the format `username:password`.');
         }
-        return { username, password };
+        return { username, password, webhookPath: webhookPath || undefined };
     })()
     : undefined;
 const environment = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getMultilineInput('environment', { required: false }).reduce((all, line) => {
