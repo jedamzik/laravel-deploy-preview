@@ -184,6 +184,14 @@ export class Forge {
           'Authorization': `Bearer ${this.#token}`,
         },
       });
+      this.#client.interceptors.response.use(undefined, (error) => {
+        if (error.response) {
+          const { status, data } = error.response;
+          const detail = typeof data === 'object' ? JSON.stringify(data) : data;
+          error.message = `Forge API error ${status}: ${detail}`;
+        }
+        return Promise.reject(error);
+      });
     }
     return this.#client;
   }

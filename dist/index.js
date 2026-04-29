@@ -16178,6 +16178,14 @@ class Forge {
                     'Authorization': `Bearer ${__classPrivateFieldGet(this, _a, "f", _Forge_token)}`,
                 },
             }), "f", _Forge_client);
+            __classPrivateFieldGet(this, _a, "f", _Forge_client).interceptors.response.use(undefined, (error) => {
+                if (error.response) {
+                    const { status, data } = error.response;
+                    const detail = typeof data === 'object' ? JSON.stringify(data) : data;
+                    error.message = `Forge API error ${status}: ${detail}`;
+                }
+                return Promise.reject(error);
+            });
         }
         return __classPrivateFieldGet(this, _a, "f", _Forge_client);
     }
