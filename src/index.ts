@@ -26,6 +26,18 @@ Forge.setToken(core.getInput('forge-token', { required: true }));
 
 const afterDeploy = core.getInput('after-deploy', { required: false });
 
+const basicAuthInput = core.getInput('basic-auth', { required: false });
+const basicAuth = basicAuthInput
+  ? (() => {
+      const [username, ...rest] = basicAuthInput.split(':');
+      const password = rest.join(':');
+      if (!username || !password) {
+        throw new Error('`basic-auth` must be in the format `username:password`.');
+      }
+      return { username, password };
+    })()
+  : undefined;
+
 const environment = core.getMultilineInput('environment', { required: false }).reduce((all, line) => {
   const [key, value] = line.split('=');
   return { ...all, [key]: value };
@@ -42,6 +54,7 @@ if (pr.action === 'opened' || pr.action === 'reopened') {
     servers,
     afterDeploy,
     environment,
+    basicAuth,
     info: core.info,
     debug: core.debug,
   });

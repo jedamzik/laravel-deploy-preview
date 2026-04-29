@@ -7,6 +7,7 @@ type CreateConfig = {
   servers: Array<{ id: number; domain: string }>;
   afterDeploy?: string;
   environment?: Record<string, string>;
+  basicAuth?: { username: string; password: string };
   info?: Function;
   debug?: Function;
   local?: boolean;
@@ -30,6 +31,7 @@ export async function createPreview({
   servers,
   afterDeploy = '',
   environment = {},
+  basicAuth,
   info = console.log,
   debug = console.log,
   local = false,
@@ -72,6 +74,12 @@ export async function createPreview({
     info('Setting up scheduler');
     await site.installScheduler();
     info('Scheduled job command set up!');
+
+    if (basicAuth) {
+      info('Setting up basic auth');
+      await site.installBasicAuth(basicAuth.username, basicAuth.password);
+      info('Basic auth enabled!');
+    }
 
     if (afterDeploy) {
       info('Updating deploy script');

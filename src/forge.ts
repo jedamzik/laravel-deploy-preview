@@ -137,6 +137,19 @@ export class Forge {
     await this.delete(`servers/${server}/jobs/${job}`);
   }
 
+  static async createSecurityRule(
+    server: number,
+    site: number,
+    username: string,
+    password: string,
+  ): Promise<void> {
+    await this.post(`servers/${server}/sites/${site}/security-rules`, {
+      name: 'Deploy Preview',
+      path: null,
+      credentials: [{ username, password }],
+    });
+  }
+
   static async deploy(server: number, site: number): Promise<SitePayload> {
     return (await this.post(`servers/${server}/sites/${site}/deployment/deploy`)).data.site;
   }
@@ -288,6 +301,10 @@ export class Site {
       () => certificate.active,
       async () => (certificate = await Forge.getCertificate(this.server_id, this.id, this.certificate_id)),
     );
+  }
+
+  async installBasicAuth(username: string, password: string): Promise<void> {
+    await Forge.createSecurityRule(this.server_id, this.id, username, password);
   }
 
   async enableQuickDeploy(): Promise<void> {

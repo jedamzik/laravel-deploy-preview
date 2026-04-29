@@ -17,6 +17,9 @@ inputs:
   environment:
     description: Environment variables to add or update on the preview site.
     required: false
+  basic-auth:
+    description: 'Basic auth credentials to protect the preview site. Format: `username:password`.'
+    required: false
 runs:
   using: node16
   main: dist/index.js
