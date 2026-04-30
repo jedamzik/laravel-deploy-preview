@@ -16292,6 +16292,9 @@ class Site {
     // Environment file??
     async deleteDatabase(name) {
         const database = (await Forge.listDatabases(this.server_id)).find((db) => db.name === name);
+        if (!database) {
+            return;
+        }
         await Forge.deleteDatabase(this.server_id, database.id);
     }
     async delete() {
